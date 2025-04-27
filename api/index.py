@@ -1,22 +1,29 @@
-from flask import Flask, request
-import requests
+from flask import Flask, request, jsonify
 import os
+import requests
 
 app = Flask(__name__)
 
-DISCORD_WEBHOOK_URL = os.environ.get('DISCORD_WEBHOOK_URL')
-SECRET_KEY = os.environ.get('SECRET_KEY')
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
-@app.route('/', methods=['POST'])
-def proxy_webhook():
-    key = request.headers.get('Authorization')
-    if key != SECRET_KEY:
-        return 'Unauthorized', 401
+@app.route("/", methods=["POST"])
+def webhook_proxy():
+    auth_header = request.headers.get("Authorization")
+    if auth_header != SECRET_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
 
     response = requests.post(DISCORD_WEBHOOK_URL, json=data)
-    return 'OK', response.status_code
+    return jsonify({"status": "success", "discord_response": response.text})
+
+@app.route("/", methods=["GET"])
+def home():
+    return "Webhook Proxy is Running 🚀"
 
 if __name__ == "__main__":
     app.run()
