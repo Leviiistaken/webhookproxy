@@ -1,28 +1,21 @@
-from flask import Flask, request, jsonify
-import requests
 import os
+from flask import Flask, request
+import requests
 
 app = Flask(__name__)
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+WEBHOOK_URL = os.getenv("SECRET_KEY")
 
-@app.route('/', methods=['POST'])
-def handle_webhook():
-    incoming_key = request.headers.get('Authorization')
-    if incoming_key != SECRET_KEY:
-        return jsonify({"error": "Unauthorized"}), 401
+@app.route("/", methods=["POST"])
+def proxy_webhook():
+    if not WEBHOOK_URL:
+        return "Webhook URL not set.", 500
 
-    try:
-        data = request.get_json()
-        response = requests.post(WEBHOOK_URL, json=data)
-        return jsonify({"status": "success", "discord_response": response.text}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    data = request.get_json()
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(WEBHOOK_URL, json=data, headers=headers)
 
-@app.route('/', methods=['GET'])
-def home():
-    return "Site Aktif, bir şey yok burada."
+    return "OK", response.status_code
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
