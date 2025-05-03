@@ -23,7 +23,7 @@ def webhook_proxy():
 
 @app.route("/", methods=["GET"])
 def home():
-    return "hello there i forgot why i added that but GET OUT"
+    return "hello there i forgot why i added that but GET OUT and yeah"
 
 if __name__ == "__main__":
     app.run()
